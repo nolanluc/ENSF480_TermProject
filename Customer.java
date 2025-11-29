@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Entity representing a customer.
@@ -9,12 +10,14 @@ public class Customer {
     private String name;
     private String email;
     private String phone;
+    private ArrayList<Reservation> reservations; //TEMP
 
     public Customer(String customerID, String name, String email, String phone) {
         this.customerID = customerID;
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.reservations = new ArrayList<>();
     }
 
     public List<Flight> searchFlights(String criteria) {
@@ -54,5 +57,15 @@ public class Customer {
     // Getters (no setters for now, but you can add as needed)
     public String getCustomerID() {
         return customerID;
+    }
+
+
+    // TEMP
+    public ArrayList<Reservation> getReservations() {
+        return reservations;
+    }
+
+    public void addReservation(Reservation r) {
+        reservations.add(r);
     }
 }

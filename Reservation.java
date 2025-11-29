@@ -7,12 +7,14 @@ public class Reservation {
     private Customer customer;
     private Flight flight;
     private String status;
+    private String seatNumber;
 
-    public Reservation(String reservationID, Customer customer, Flight flight, String status) {
+    public Reservation(String reservationID, Customer customer, Flight flight, String seatNumber) {
         this.reservationID = reservationID;
         this.customer = customer;
         this.flight = flight;
-        this.status = status;
+        this.status = "CONFIRMED";
+        this.seatNumber = seatNumber;
     }
 
     public boolean updateReservation() {
@@ -50,6 +52,10 @@ public class Reservation {
 
     public String getStatus() {
         return status;
+    }
+    
+    public String getSeatNumber() {
+        return seatNumber;
     }
 
     public void setStatus(String status) {
