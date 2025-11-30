@@ -90,6 +90,9 @@ public class LoginGUI extends JFrame {
 
         if (role.equals("Customer")) 
             new CustomerDashboardGUI();
+
+        if (role.equals("Flight Agent")) 
+            new AgentDashboardGUI();
     }
 
     public static void main(String[] args) {
