@@ -5,10 +5,12 @@ import java.util.List;
  */
 public class FlightAgent {
 
-    private String agentID;
+    private int agentID;
     private String name;
+    private String username;
+    private String password;
 
-    public FlightAgent(String agentID, String name) {
+    public FlightAgent(int agentID, String name) {
         this.agentID = agentID;
         this.name = name;
     }

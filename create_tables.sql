@@ -2,7 +2,9 @@ CREATE TABLE Customer (
     customerID TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
     email      TEXT NOT NULL UNIQUE,
-    phone      TEXT
+    phone      TEXT,
+    username   TEXT,
+    password   TEXT
 );
 
 CREATE TABLE Flight (

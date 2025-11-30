@@ -21,7 +21,6 @@ public class LoginGUI extends JFrame {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         add(titleLabel, BorderLayout.NORTH);
 
-        // =======================
         // FORM PANEL
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -81,10 +80,20 @@ public class LoginGUI extends JFrame {
             return;
         }
 
+        boolean success = LoginController.login(username, password, role);
+
+        if(!success) {
+            JOptionPane.showMessageDialog(this,
+                "Invalid username/password",
+                "Login Failed",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         JOptionPane.showMessageDialog(this,
-                "Login successful!\nRole: " + role,
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE);
+            "Login successful!\nRole: " + role,
+            "Success",
+        JOptionPane.INFORMATION_MESSAGE);
 
         dispose();
 

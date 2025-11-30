@@ -19,7 +19,13 @@ public class DatabaseManager {
    
     // Helper: Get Connection
     private Connection connect() throws SQLException {
-        return DriverManager.getConnection(DB_URL);
+        Connection conn = DriverManager.getConnection(DB_URL);
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("PRAGMA foreign_keys = ON");
+        }
+
+        return conn;
     }
 
     //Customer CRUD
@@ -461,6 +467,54 @@ public class DatabaseManager {
 
         } catch (SQLException e) {
             System.err.println("updatePayment Error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean validateCustomer(String username, String password) {
+
+        String sql = """
+            SELECT 1
+            FROM Customer
+            WHERE username = ?
+              AND password = ?
+        """;
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+
+            return rs.next(); // true if found
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean validateFlightAgent(String username, String password) {
+
+        String sql = """
+            SELECT agentID
+            FROM FlightAgent
+            WHERE username = ?
+            AND password = ?
+        """;
+
+        try (Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            return stmt.executeQuery().next();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }
