@@ -1,5 +1,5 @@
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entity representing a customer.
@@ -68,4 +68,19 @@ public class Customer {
     public void addReservation(Reservation r) {
         reservations.add(r);
     }
+
+    public String getName() {
+        return name;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+    
+    public String getPhone() {
+        return phone;
+    }
+    
 }
+
+

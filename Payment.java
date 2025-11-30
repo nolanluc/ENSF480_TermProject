@@ -43,4 +43,17 @@ public class Payment {
     public String getStatus() {
         return status;
     }
+
+    public double getAmount() {
+        return amount;
+    }
+    
+    public String getMethod() {
+        return method;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
 }
