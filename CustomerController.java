@@ -12,27 +12,16 @@ public class CustomerController {
         return db.getAllCustomers();
     }
 
-    public Customer findCustomer(String input) {
-
-        if (input == null || input.trim().isEmpty())
-            return null;
-
-        for (Customer c : db.getAllCustomers()) {
-
-            if (c.getCustomerID().equalsIgnoreCase(input)
-                    || c.getEmail().equalsIgnoreCase(input)) {
-                return c;
-            }
-        }
-        return null;
-    }
-
     public boolean updateCustomer(Customer customer) {
         return db.updateCustomer(customer);
     }
 
     public boolean addCustomer(Customer c) {
         return db.saveCustomer(c);
+    }
+
+    public Customer authenticate(String username, String password) {
+        return db.authenticateCustomer(username, password);
     }
 
 }

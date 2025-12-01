@@ -97,8 +97,23 @@ public class LoginGUI extends JFrame {
 
         dispose();
 
-        if (role.equals("Customer")) 
-            new CustomerDashboardGUI();
+        if (role.equals("Customer")) {
+            CustomerController customerController = new CustomerController(DatabaseManager.getInstance());
+            Customer customer =
+                customerController.authenticate(username, password);
+
+            if (customer == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Invalid username or password",
+                        "Login Failed",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            new CustomerDashboardGUI(customer);
+            dispose();
+            return;
+        }
 
         if (role.equals("Flight Agent")) 
             new AgentDashboardGUI();

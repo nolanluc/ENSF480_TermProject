@@ -169,9 +169,13 @@ public class AgentDashboardGUI extends JFrame {
 
         // CENTER: Reservations
         reservationList = new JList<>();
+        reservationList.setBorder(
+                BorderFactory.createTitledBorder("Reservations"));
+        reservationList.addListSelectionListener(e -> loadReservationDetails());
+
         JPanel center = new JPanel(new BorderLayout());
-        center.setBorder(BorderFactory.createTitledBorder("Reservations"));
         center.add(new JScrollPane(reservationList), BorderLayout.CENTER);
+
         panel.add(center, BorderLayout.CENTER);
 
         // RIGHT: Reservation Details
@@ -335,5 +339,9 @@ public class AgentDashboardGUI extends JFrame {
         if (screen.wasSaved()) {
             loadCustomers(); // refresh list
         }
+    }
+
+    private void openReservationManager() {
+        new ModifyReservationScreen(); // AGENT MODE → loads all reservations
     }
 }

@@ -554,7 +554,36 @@ public class DatabaseManager {
         }
     }
 
-    
+    public Customer authenticateCustomer(String username, String password) {
+
+        String sql =
+            "SELECT * FROM Customer WHERE username = ? AND password = ?";
+
+        try (Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new Customer(
+                    rs.getInt("customerID"),
+                    rs.getString("name"),
+                    rs.getString("email"),
+                    rs.getString("phone"),
+                    rs.getString("username"),
+                    rs.getString("password")
+                );
+            }
+
+        } catch (SQLException e) {
+            System.err.println("authenticateCustomer Error: " + e.getMessage());
+        }
+
+        return null; // login failed
+    }
 
     
 }
