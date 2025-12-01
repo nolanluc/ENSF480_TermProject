@@ -30,7 +30,7 @@ public class CustomerDashboardGUI extends JFrame {
         add(buttonPanel, BorderLayout.CENTER);
 
         searchFlightsBtn.addActionListener(e ->
-            new SearchFlightScreen()
+            new SearchFlightScreen(customer)
         );
 
         myReservationsBtn.addActionListener(e ->

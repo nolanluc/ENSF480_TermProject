@@ -84,6 +84,10 @@ public class Flight {
         return flightDate;
     }
 
+    public int getSeatsReserved() {
+        return seatsReserved;
+    }
+
     public void setOrigin(String origin) {
         this.origin = origin;
     }

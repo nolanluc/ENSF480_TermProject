@@ -4,86 +4,82 @@ import java.util.List;
 
 public class SearchFlightScreen extends JFrame {
 
-    private SearchFlightController controller;
-    private DatabaseManager db;
+    private final SearchFlightController controller;
+    private final DatabaseManager db;
+    private final Customer loggedInCustomer;
 
-    // Common fields
+    // UI components
     private JComboBox<String> searchTypeBox;
     private JButton searchButton;
+    private JButton bookButton;
 
-    // Destination search
     private JTextField toCityField;
-
-    // Date search
     private JTextField departureDateField;
-
-    // Price search
     private JTextField minPriceField;
     private JTextField maxPriceField;
 
-    // Dynamic panel
     private JPanel dynamicSearchPanel;
     private CardLayout cardLayout;
 
-    // Results panel
+    private JList<Flight> resultList;
     private JPanel resultsPanel;
 
-    public SearchFlightScreen() {
+    public SearchFlightScreen(Customer customer) {
 
         super("Search Flights");
 
-        db = DatabaseManager.getInstance();
-        controller = new SearchFlightController(db, null);
+        this.loggedInCustomer = customer;
+        this.db = DatabaseManager.getInstance();
+        this.controller = new SearchFlightController(db, null);
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(600, 650);
+        setSize(650, 650);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // =========================
-        // TOP PANEL
-        // =========================
+        buildUI();
+        setVisible(true);
+    }
+
+    // =========================
+    // UI
+    // =========================
+    private void buildUI() {
+
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Flight Search"));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Search type dropdown
         searchTypeBox = new JComboBox<>(new String[]{
-                "Destination",
-                "Departure Date",
-                "Price"
+            "Destination",
+            "Departure Date",
+            "Price"
         });
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Search By:"), gbc);
-
         gbc.gridx = 1;
         formPanel.add(searchTypeBox, gbc);
 
-        // =========================
-        // Dynamic Search Panel
-        // =========================
         cardLayout = new CardLayout();
         dynamicSearchPanel = new JPanel(cardLayout);
 
-        // Destination panel
+        // Destination
         JPanel destinationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         toCityField = new JTextField(12);
         destinationPanel.add(new JLabel("To City:"));
         destinationPanel.add(toCityField);
 
-        // Date panel
+        // Date
         JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         departureDateField = new JTextField(12);
         datePanel.add(new JLabel("Departure Date (YYYY-MM-DD):"));
         datePanel.add(departureDateField);
 
-        // Price panel
+        // Price
         JPanel pricePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         minPriceField = new JTextField(6);
         maxPriceField = new JTextField(6);
@@ -96,56 +92,42 @@ public class SearchFlightScreen extends JFrame {
         dynamicSearchPanel.add(datePanel, "Departure Date");
         dynamicSearchPanel.add(pricePanel, "Price");
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
         formPanel.add(dynamicSearchPanel, gbc);
 
-        // Reset constraints
-        gbc.gridwidth = 1;
-
-        // =========================
-        // Search button
-        // =========================
         searchButton = new JButton("Search");
-
-        gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         formPanel.add(searchButton, gbc);
-
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.WEST;
 
         add(formPanel, BorderLayout.NORTH);
 
         // =========================
-        // Results Panel
+        // Results
         // =========================
         resultsPanel = new JPanel(new BorderLayout());
-        resultsPanel.setBorder(BorderFactory.createTitledBorder("Flight Results"));
+        resultsPanel.setBorder(BorderFactory.createTitledBorder("Results"));
 
-        JLabel placeholder = new JLabel(
-                "Flight results will appear here.",
-                SwingConstants.CENTER
-        );
-        placeholder.setFont(new Font("Arial", Font.ITALIC, 16));
+        resultList = new JList<>(new DefaultListModel<>());
+        resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        resultsPanel.add(placeholder, BorderLayout.CENTER);
+        resultsPanel.add(new JScrollPane(resultList), BorderLayout.CENTER);
+
+        bookButton = new JButton("Book Selected Flight");
+        resultsPanel.add(bookButton, BorderLayout.SOUTH);
+
         add(resultsPanel, BorderLayout.CENTER);
 
         // =========================
-        // Event listeners
+        // Events
         // =========================
-        searchTypeBox.addActionListener(e -> {
-            String selected = (String) searchTypeBox.getSelectedItem();
-            cardLayout.show(dynamicSearchPanel, selected);
-        });
+        searchTypeBox.addActionListener(e ->
+            cardLayout.show(dynamicSearchPanel,
+                            (String) searchTypeBox.getSelectedItem())
+        );
 
         searchButton.addActionListener(e -> performSearch());
-
-        setVisible(true);
+        bookButton.addActionListener(e -> openBooking());
     }
 
     // =========================
@@ -157,74 +139,48 @@ public class SearchFlightScreen extends JFrame {
 
         switch (selected) {
             case "Destination" ->
-                    controller.setStrategy(new DestinationSearchStrategy(db));
-
+                controller.setStrategy(new DestinationSearchStrategy(db));
             case "Departure Date" ->
-                    controller.setStrategy(new DateSearchStrategy(db));
-
+                controller.setStrategy(new DateSearchStrategy(db));
             case "Price" ->
-                    controller.setStrategy(new PriceSearchStrategy(db));
+                controller.setStrategy(new PriceSearchStrategy(db));
         }
 
         String criteria = switch (selected) {
             case "Destination" -> toCityField.getText().trim();
             case "Departure Date" -> departureDateField.getText().trim();
-            case "Price" ->
-                    minPriceField.getText().trim() + "-" +
-                    maxPriceField.getText().trim();
+            case "Price" -> minPriceField.getText().trim() + "-" +
+                           maxPriceField.getText().trim();
             default -> "";
         };
 
         List<Flight> results = controller.searchFlights(criteria);
-        displayResults(results);
-    }
 
-    // =========================
-    // Display Results
-    // =========================
-    private void displayResults(List<Flight> flights) {
-
-        resultsPanel.removeAll();
-
-        if (flights == null || flights.isEmpty()) {
-
-            resultsPanel.add(
-                new JLabel("No matching flights found.", SwingConstants.CENTER),
-                BorderLayout.CENTER
-            );
-
-        } else {
-
-            DefaultListModel<String> model = new DefaultListModel<>();
-            JList<String> flightList = new JList<>(model);
-            flightList.setFont(new Font("Monospaced", Font.PLAIN, 12));
-
-            for (Flight f : flights) {
-
-                String departure = f.getDepartureTime() != null
-                        ? f.getDepartureTime()
-                        : "N/A";
-
-                String landing = f.getArrivalTime() != null
-                        ? f.getArrivalTime()
-                        : "N/A";
-
-                model.addElement(
-                    f.getFlightNumber() + " | " +
-                    f.getOrigin() + " → " + f.getDestination() +
-                    " | Date: " + f.getFlightDate() +
-                    " | Time: " + departure + " → " + landing +
-                    " | $" + f.getPrice()
-                );
-            }
-
-            resultsPanel.add(new JScrollPane(flightList), BorderLayout.CENTER);
+        DefaultListModel<Flight> model = new DefaultListModel<>();
+        for (Flight f : results) {
+            model.addElement(f);
         }
 
-        resultsPanel.revalidate();
-        resultsPanel.repaint();
+        resultList.setModel(model);
     }
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(SearchFlightGUI::new);
+
+    // =========================
+    // Booking
+    // =========================
+    private void openBooking() {
+
+        Flight selected = resultList.getSelectedValue();
+
+        if (selected == null) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Please select a flight first.",
+                "No Selection",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        new BookingFlightGUI(loggedInCustomer, selected);
     }
 }

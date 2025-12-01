@@ -209,7 +209,7 @@ public class ModifyReservationScreen extends JFrame {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            reservationController.removeReservation(r.getReservationID());
+            reservationController.removeReservation(r);
             JOptionPane.showMessageDialog(this, "Reservation cancelled.");
             loadReservations();
             flightField.setText("");

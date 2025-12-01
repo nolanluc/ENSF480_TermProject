@@ -21,8 +21,9 @@ public class ReservationController {
         return db.updateReservation(reservation);
     }
 
-    public boolean removeReservation(int resID) {
-        return db.deleteReservation(resID);
+    public boolean removeReservation(Reservation r) {
+        db.decrementSeats(r.getFlight().getFlightNumber());
+        return db.deleteReservation(r.getReservationID());
     }
 
     public List<Reservation> getReservationsForCustomer(Customer customer) {

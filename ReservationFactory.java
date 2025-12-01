@@ -5,8 +5,8 @@ public class ReservationFactory {
 
     private static int nextId = 1;
 
-    public Reservation createReservation(Customer customer, Flight flight) {
+    public Reservation createReservation(Customer customer, Flight flight, String seatNumber) {
         int id = 0;
-        return new Reservation(id, customer, flight, "NEW");
+        return new Reservation(id, customer, flight, seatNumber);
     }
 }

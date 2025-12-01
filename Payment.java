@@ -1,9 +1,6 @@
-/**
- * Entity representing a payment record.
- */
-public class Payment {
+import java.util.UUID;
 
-    private static int nextId = 1;
+public class Payment {
 
     private String paymentID;
     private double amount;
@@ -11,15 +8,14 @@ public class Payment {
     private String status;
 
     public Payment(double amount, String method) {
-        this.paymentID = "PAY-" + nextId++;
+        this.paymentID = UUID.randomUUID().toString(); 
         this.amount = amount;
         this.method = method;
         this.status = "PENDING";
     }
 
     public boolean processPayment() {
-        // Success if amount > 0 as per your spec.
-        if (amount > 0) {
+        if (amount >= 0) {
             status = "APPROVED";
             return true;
         } else {
@@ -29,31 +25,14 @@ public class Payment {
     }
 
     public boolean refund() {
-        if (!"APPROVED".equals(status)) {
-            return false;
-        }
+        if (!"APPROVED".equals(status)) return false;
         status = "REFUNDED";
         return true;
     }
 
-    public String getPaymentID() {
-        return paymentID;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-    
-    public String getMethod() {
-        return method;
-    }
-    
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    
+    public String getPaymentID() { return paymentID; }
+    public String getStatus() { return status; }
+    public double getAmount() { return amount; }
+    public String getMethod() { return method; }
+    public void setStatus(String status) { this.status = status; }
 }

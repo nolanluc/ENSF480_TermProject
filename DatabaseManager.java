@@ -303,10 +303,11 @@ public class DatabaseManager {
     }
 
     public Reservation getReservation(String reservationID) {
+
         String sql = "SELECT * FROM Reservation WHERE reservationID = ?";
 
         try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, reservationID);
             ResultSet rs = stmt.executeQuery();
@@ -316,19 +317,22 @@ public class DatabaseManager {
                 Flight flight = getFlight(rs.getString("flightNumber"));
 
                 Reservation r = new Reservation(
-                        rs.getInt("reservationID"),
-                        customer,
-                        flight,
-                        rs.getString("seatNumber")
+                    rs.getInt("reservationID"),
+                    customer,
+                    flight,
+                    rs.getString("seatNumber")
                 );
 
                 r.setStatus(rs.getString("status"));
+                r.setPaymentID(rs.getString("paymentID")); // ✅ RESTORED
+
                 return r;
             }
 
         } catch (SQLException e) {
             System.err.println("getReservation Error: " + e.getMessage());
         }
+
         return null;
     }
 
@@ -337,7 +341,7 @@ public class DatabaseManager {
         List<Reservation> list = new ArrayList<>();
 
         String sql =
-            "SELECT r.reservationID, r.status, r.seatNumber, " +
+            "SELECT r.reservationID, r.status, r.seatNumber, r.paymentID, " +
             "c.customerID, c.name, c.email, c.phone, " +
             "f.flightNumber, f.flightDate, f.origin, f.destination, " +
             "f.departureTime, f.arrivalTime, f.capacity, f.seatsReserved, f.price " +
@@ -363,11 +367,11 @@ public class DatabaseManager {
 
                 Flight f = new Flight(
                     rs.getString("flightNumber"),
-                    rs.getString("flightDate"),      
+                    rs.getString("flightDate"),
                     rs.getString("origin"),
                     rs.getString("destination"),
-                    rs.getString("departureTime"),    
-                    rs.getString("arrivalTime"),     
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
                     rs.getInt("capacity"),
                     rs.getFloat("price")
                 );
@@ -380,6 +384,7 @@ public class DatabaseManager {
                     rs.getString("seatNumber")
                 );
 
+                r.setPaymentID(rs.getString("paymentID")); // ✅ RESTORED
                 list.add(r);
             }
 
@@ -391,15 +396,24 @@ public class DatabaseManager {
     }
 
     public boolean updateReservation(Reservation r) {
-        String sql = "UPDATE Reservation SET status = ?, seatNumber = ?, paymentID = ? WHERE reservationID = ?";
+
+        String sql =
+            "UPDATE Reservation SET status = ?, seatNumber = ?, paymentID = ? " +
+            "WHERE reservationID = ?";
 
         try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, r.getStatus());
             stmt.setString(2, r.getSeatNumber());
-            stmt.setNull(3, java.sql.Types.INTEGER); // attach payment later
+
+            if (r.getPaymentID() == null)
+                stmt.setNull(3, java.sql.Types.VARCHAR); 
+            else
+                stmt.setString(3, r.getPaymentID());
+
             stmt.setInt(4, r.getReservationID());
+
             stmt.executeUpdate();
             return true;
 
@@ -706,4 +720,5 @@ public class DatabaseManager {
 
         return list;
     }
+
 }

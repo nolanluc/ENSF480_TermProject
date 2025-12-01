@@ -242,7 +242,7 @@ public class AgentDashboardGUI extends JFrame {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            reservationController.removeReservation(r.getReservationID());
+            reservationController.removeReservation(r);
             loadCustomerReservations();
         }
     }

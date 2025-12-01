@@ -8,7 +8,7 @@ public class BookingFlightGUI extends JFrame {
     private DatabaseManager db;
     private BookingController controller;
 
-    private JTextField fullNameField;
+    private JTextField nameField;
     private JTextField birthdayField;
     private JComboBox<String> accessibilityBox;
 
@@ -18,6 +18,7 @@ public class BookingFlightGUI extends JFrame {
     public BookingFlightGUI(Customer customer, Flight flight) {
 
         super("Book Flight");
+
         this.customer = customer;
         this.flight = flight;
 
@@ -25,7 +26,7 @@ public class BookingFlightGUI extends JFrame {
         controller = new BookingController(db);
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(600, 750);
+        setSize(600, 650);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
@@ -35,17 +36,24 @@ public class BookingFlightGUI extends JFrame {
 
     private void buildUI() {
 
+        // =========================
+        // Passenger Info Panel
+        // =========================
         JPanel passengerPanel = new JPanel(new GridBagLayout());
         passengerPanel.setBorder(BorderFactory.createTitledBorder("Passenger Information"));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        fullNameField = new JTextField(15);
+        // Auto-filled customer name (read-only)
+        nameField = new JTextField(customer.getName(), 15);
+        nameField.setEditable(false);
+
         birthdayField = new JTextField(10);
         accessibilityBox = new JComboBox<>(new String[]{"No", "Yes"});
 
-        addField(passengerPanel, gbc, "Full Name:", fullNameField, 0);
+        addField(passengerPanel, gbc, "Passenger Name:", nameField, 0);
         addField(passengerPanel, gbc, "Birthday (YYYY-MM-DD):", birthdayField, 1);
 
         gbc.gridx = 0; gbc.gridy = 2;
@@ -56,6 +64,9 @@ public class BookingFlightGUI extends JFrame {
 
         add(passengerPanel, BorderLayout.NORTH);
 
+        // =========================
+        // Seat Selection Panel
+        // =========================
         JPanel seatPanel = new JPanel(new GridBagLayout());
         seatPanel.setBorder(BorderFactory.createTitledBorder("Seat Selection"));
 
@@ -70,15 +81,21 @@ public class BookingFlightGUI extends JFrame {
 
         add(seatPanel, BorderLayout.CENTER);
 
+        // =========================
+        // Confirm Button
+        // =========================
         confirmButton = new JButton("Confirm Reservation");
         confirmButton.addActionListener(e -> handleReservation());
 
-        JPanel bottom = new JPanel();
-        bottom.add(confirmButton);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(confirmButton);
 
-        add(bottom, BorderLayout.SOUTH);
+        add(bottomPanel, BorderLayout.SOUTH);
     }
 
+    // =========================
+    // Load Seats
+    // =========================
     private void loadAvailableSeats() {
 
         int capacity = flight.getCapacity();
@@ -95,39 +112,42 @@ public class BookingFlightGUI extends JFrame {
         }
     }
 
+    // =========================
+    // Reservation Logic
+    // =========================
     private void handleReservation() {
 
-        if (fullNameField.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Full name required.");
-            return;
-        }
+        String selectedSeat = seatSelectBox.getSelectedItem().toString();
+        int seatNumber = Integer.parseInt(selectedSeat.replace("Seat ", ""));
 
-        Reservation reservation = controller.confirmReservation(flight, customer);
+        Reservation reservation =
+            controller.confirmReservation(flight, customer, String.valueOf(seatNumber));
 
         if (reservation == null) {
-            JOptionPane.showMessageDialog(this, "Reservation failed.");
+            JOptionPane.showMessageDialog(this,
+                "Reservation failed. Flight may be full.");
             return;
         }
 
-        String selectedSeat = seatSelectBox.getSelectedItem().toString();
-        reservation.setSeatNumber(selectedSeat);
-        db.updateReservation(reservation);
-
-        db.incrementSeats(flight.getFlightNumber());
-
         JOptionPane.showMessageDialog(this,
-                "Reservation created!\nSeat: " + selectedSeat +
-                "\nReservation: " + reservation.getReservationID());
+            "Reservation confirmed for " + customer.getName() +
+            "\nSeat: " + seatNumber +
+            "\nReservation ID: " + reservation.getReservationID());
 
         new PaymentGUI(customer, reservation);
         dispose();
     }
+    // =========================
+    // Helper Method
+    // =========================
+    private void addField(JPanel panel, GridBagConstraints gbc,
+                          String label, JTextField field, int row) {
 
-    private void addField(JPanel p, GridBagConstraints gbc, String text, JTextField field, int row) {
-        gbc.gridx = 0; gbc.gridy = row;
-        p.add(new JLabel(text), gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        panel.add(new JLabel(label), gbc);
 
         gbc.gridx = 1;
-        p.add(field, gbc);
+        panel.add(field, gbc);
     }
 }
