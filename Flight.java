@@ -1,4 +1,5 @@
 
+import java.time.LocalDate;
 
 /**
  * Entity representing a flight.
@@ -86,11 +87,6 @@ public class Flight {
     public int getSeatsReserved() {
         return seatsReserved;
     }
-
-    public void setSeatsReserved(int seatsReserved) {
-        this.seatsReserved = seatsReserved;
-    }
-    
 
     public void setOrigin(String origin) {
         this.origin = origin;

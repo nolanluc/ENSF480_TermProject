@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -395,29 +396,32 @@ public class DatabaseManager {
     }
 
     public boolean updateReservation(Reservation r) {
-        String sql = "UPDATE Reservation SET status = ?, seatNumber = ?, paymentID = ? WHERE reservationID = ?";
-    
+
+        String sql =
+            "UPDATE Reservation SET status = ?, seatNumber = ?, paymentID = ? " +
+            "WHERE reservationID = ?";
+
         try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-    
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, r.getStatus());
             stmt.setString(2, r.getSeatNumber());
-            if (r.getPaymentID() == null) {
-                stmt.setNull(3, java.sql.Types.VARCHAR);
-            } else {
+
+            if (r.getPaymentID() == null)
+                stmt.setNull(3, java.sql.Types.VARCHAR); 
+            else
                 stmt.setString(3, r.getPaymentID());
-            }
+
             stmt.setInt(4, r.getReservationID());
-    
+
             stmt.executeUpdate();
             return true;
-    
+
         } catch (SQLException e) {
             System.err.println("updateReservation Error: " + e.getMessage());
             return false;
         }
     }
-    
 
     public boolean deleteReservation(int reservationID) {
         String sql = "DELETE FROM Reservation WHERE reservationID = ?";

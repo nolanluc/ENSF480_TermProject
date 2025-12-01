@@ -5,8 +5,8 @@ public class ReservationFactory {
 
     private static int nextId = 1;
 
-    public Reservation createReservation(Customer customer, Flight flight) {
-        // For now, 0 means "let DB assign" (once schema supports AUTOINCREMENT).
-        return new Reservation(0, customer, flight);
+    public Reservation createReservation(Customer customer, Flight flight, String seatNumber) {
+        int id = 0;
+        return new Reservation(id, customer, flight, seatNumber);
     }
 }

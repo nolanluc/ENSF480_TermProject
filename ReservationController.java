@@ -21,19 +21,10 @@ public class ReservationController {
         return db.updateReservation(reservation);
     }
 
-    public boolean removeReservation(int resID) {
-
-        // Fetch reservation first
-        Reservation r = db.getReservation(String.valueOf(resID));
-        if (r == null) return false;
-    
-        // Decrement seat count in DB
+    public boolean removeReservation(Reservation r) {
         db.decrementSeats(r.getFlight().getFlightNumber());
-    
-        // Delete reservation record
-        return db.deleteReservation(resID);
+        return db.deleteReservation(r.getReservationID());
     }
-    
 
     public List<Reservation> getReservationsForCustomer(Customer customer) {
         return db.getReservationsForCustomer(customer);

@@ -1,6 +1,9 @@
-import java.awt.*;
-import java.util.List;
 import javax.swing.*;
+import javax.xml.crypto.Data;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AgentDashboardGUI extends JFrame {
 
@@ -239,7 +242,7 @@ public class AgentDashboardGUI extends JFrame {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            reservationController.removeReservation(r.getReservationID());
+            reservationController.removeReservation(r);
             loadCustomerReservations();
         }
     }
