@@ -28,19 +28,30 @@ public class Reservation {
 		this.paymentID = null;
     }
 
+    
+
+    public Reservation(int reservationID, Customer customer, Flight flight) {
+        this(reservationID, customer, flight, "NEW", null);
+    }
+    
+
     public boolean updateReservation() {
         // For now, nothing to update automatically; returns true to indicate success.
         return true;
     }
 
     public boolean cancelReservation() {
-        if ("CANCELLED".equals(status)) {
-            return false;
-        }
+        if ("CANCELLED".equals(status)) return false;
+    
         status = "CANCELLED";
+    
+        // Update both memory & DB
         flight.releaseSeat();
+        DatabaseManager.getInstance().decrementSeats(flight.getFlightNumber());
+    
         return true;
     }
+    
 
     public String getDetails() {
         return "Reservation " + reservationID + " [" + status + "] for customer "

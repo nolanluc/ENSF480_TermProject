@@ -16,9 +16,11 @@ public class FlightAgent {
     }
 
     public List<Reservation> accessReservations() {
-        return DatabaseManager.getInstance().getReservationsForCustomer(null);
-        // In a real system you would filter by agent; here it's a placeholder.
+        throw new UnsupportedOperationException(
+            "Accessing reservations by agent is not implemented."
+        );
     }
+    
 
     public boolean modifyReservation(String reservationID) {
         ReservationController controller = new ReservationController(DatabaseManager.getInstance());

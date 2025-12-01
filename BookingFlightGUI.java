@@ -1,5 +1,5 @@
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class BookingFlightGUI extends JFrame {
 
@@ -121,7 +121,7 @@ public class BookingFlightGUI extends JFrame {
         int seatNumber = Integer.parseInt(selectedSeat.replace("Seat ", ""));
 
         Reservation reservation =
-            controller.confirmReservation(flight, customer, String.valueOf(seatNumber));
+            controller.confirmReservation(flight, customer);
 
         if (reservation == null) {
             JOptionPane.showMessageDialog(this,
