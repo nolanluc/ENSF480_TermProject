@@ -206,47 +206,41 @@ public class DatabaseManager {
         return list;
     }
 
-    public List<Flight> queryFlights(String criteria) {
-    List<Flight> results = new ArrayList<>();
+    public List<Flight> queryFlights(String destination) {
+        List<Flight> results = new ArrayList<>();
 
-    // If no search criteria, return all flights
-    if (criteria == null || criteria.isBlank()) {
-        return getAllFlights();
-    }
-
-    String sql = 
-        "SELECT * FROM Flight " +
-        "WHERE LOWER(origin) = LOWER(?) " +
-        "   OR LOWER(destination) = LOWER(?) " +
-        "   OR LOWER(flightNumber) = LOWER(?)";
-
-    try (Connection conn = connect();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-        // Bind the same criteria to each condition
-        stmt.setString(1, criteria);
-        stmt.setString(2, criteria);
-        stmt.setString(3, criteria);
-
-        ResultSet rs = stmt.executeQuery();
-
-        while (rs.next()) {
-            results.add(new Flight(
-                    rs.getString("flightNumber"),
-                    rs.getString("origin"),
-                    rs.getString("destination"),
-                    rs.getString("departureTime"),
-                    rs.getString("arrivalTime"),
-                    rs.getInt("capacity")
-            ));
+        if (destination == null || destination.isBlank()) {
+            return results; // or return getAllFlights() if preferred
         }
 
-    } catch (SQLException e) {
-        System.err.println("queryFlights Error: " + e.getMessage());
-    }
+        String sql =
+            "SELECT * FROM Flight " +
+            "WHERE LOWER(destination) = LOWER(?)";
 
-    return results;
-}
+        try (Connection conn = connect();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, destination.trim());
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                results.add(new Flight(
+                        rs.getString("flightNumber"),
+                        rs.getString("origin"),
+                        rs.getString("destination"),
+                        rs.getString("departureTime"),
+                        rs.getString("arrivalTime"),
+                        rs.getInt("capacity")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("queryFlightsByDestination Error: " + e.getMessage());
+        }
+
+        return results;
+    }
 
 
     public boolean deleteFlight(int flightNumber) {

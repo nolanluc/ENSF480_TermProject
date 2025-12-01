@@ -8,9 +8,14 @@ import java.util.List;
  */
 public class PriceSearchStrategy implements SearchStrategy {
 
+    private final DatabaseManager db;
+
+    public PriceSearchStrategy(DatabaseManager db) {
+        this.db = db;
+    }
+
     @Override
-    public List<Flight> search(String criteria) {
-        // You can extend Flight to have a price field and filter on it.
-        return new ArrayList<>(DatabaseManager.getInstance().getAllFlights());
+    public List<Flight> search(String price) {
+        return db.getAllFlights(); // until price field exists
     }
 }

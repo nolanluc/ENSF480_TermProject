@@ -6,18 +6,14 @@ import java.util.List;
  */
 public class DestinationSearchStrategy implements SearchStrategy {
 
+    private final DatabaseManager db;
+
+    public DestinationSearchStrategy(DatabaseManager db) {
+        this.db = db;
+    }
+
     @Override
-    public List<Flight> search(String criteria) {
-        List<Flight> all = DatabaseManager.getInstance().getAllFlights();
-        if (criteria == null || criteria.isBlank()) {
-            return all;
-        }
-        List<Flight> result = new ArrayList<>();
-        for (Flight f : all) {
-            if (f.getDestination().equalsIgnoreCase(criteria)) {
-                result.add(f);
-            }
-        }
-        return result;
+    public List<Flight> search(String destination) {
+        return db.queryFlights(destination);
     }
 }

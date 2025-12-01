@@ -7,18 +7,14 @@ import java.util.List;
  */
 public class DateSearchStrategy implements SearchStrategy {
 
+    private final DatabaseManager db;
+
+    public DateSearchStrategy(DatabaseManager db) {
+        this.db = db;
+    }
+
     @Override
-    public List<Flight> search(String criteria) {
-        List<Flight> all = DatabaseManager.getInstance().getAllFlights();
-        if (criteria == null || criteria.isBlank()) {
-            return all;
-        }
-        List<Flight> result = new ArrayList<>();
-        for (Flight f : all) {
-            if (f.getDepartureTime() != null && f.getDepartureTime().contains(criteria)) {
-                result.add(f);
-            }
-        }
-        return result;
+    public List<Flight> search(String date) {
+        return db.queryFlights(date);
     }
 }

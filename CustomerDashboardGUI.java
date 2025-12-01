@@ -34,7 +34,7 @@ public class CustomerDashboardGUI extends JFrame {
 
         // Search flights (placeholder)
         searchFlightsBtn.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Open Search Flights GUI")
+            new SearchFlightGUI()
         );
 
         myReservationsBtn.addActionListener(e ->
