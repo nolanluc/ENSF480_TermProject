@@ -187,20 +187,34 @@ public class SearchFlightGUI extends JFrame {
         resultsPanel.removeAll();
 
         if (flights == null || flights.isEmpty()) {
+
             resultsPanel.add(
-                    new JLabel("No matching flights found.", SwingConstants.CENTER),
-                    BorderLayout.CENTER
+                new JLabel("No matching flights found.", SwingConstants.CENTER),
+                BorderLayout.CENTER
             );
+
         } else {
+
             DefaultListModel<String> model = new DefaultListModel<>();
             JList<String> flightList = new JList<>(model);
+            flightList.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
             for (Flight f : flights) {
+
+                String departure = f.getDepartureTime() != null
+                        ? f.getDepartureTime()
+                        : "N/A";
+
+                String landing = f.getArrivalTime() != null
+                        ? f.getArrivalTime()
+                        : "N/A";
+
                 model.addElement(
-                        f.getFlightNumber() + " | " +
-                        f.getOrigin() + " → " + f.getDestination() +
-                        " | Departs: " + f.getDepartureTime() +
-                        " | Capacity: " + f.getCapacity()
+                    f.getFlightNumber() + " | " +
+                    f.getOrigin() + " → " + f.getDestination() +
+                    " | Date: " + f.getFlightDate() +
+                    " | Time: " + departure + " → " + landing +
+                    " | $" + f.getPrice()
                 );
             }
 
@@ -210,7 +224,6 @@ public class SearchFlightGUI extends JFrame {
         resultsPanel.revalidate();
         resultsPanel.repaint();
     }
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(SearchFlightGUI::new);
     }

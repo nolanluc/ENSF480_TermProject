@@ -27,4 +27,14 @@ public class SearchFlightController {
         }
         return strategy.search(criteria);
     }
+
+    public boolean updateFlight(Flight flight) {
+        return db.updateFlight(flight);
+    }
+
+    public boolean removeFlight(String flightNumber) {
+        return db.deleteFlight(flightNumber);
+    }
+
+
 }

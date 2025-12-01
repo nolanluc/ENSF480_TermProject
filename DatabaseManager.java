@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,49 +132,28 @@ public class DatabaseManager {
         }
     }
 
-    //Flight CRUD
-    public boolean saveFlight(Flight f) {
-        String sql = "INSERT INTO Flight (flightNumber, origin, destination, departureTime, arrivalTime, capacity, seatsReserved)"
-                   + " VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, f.getFlightNumber());
-            stmt.setString(2, f.getOrigin());
-            stmt.setString(3, f.getDestination());
-            stmt.setString(4, f.getDepartureTime());
-            stmt.setString(5, f.getArrivalTime());
-            stmt.setInt(6, f.getCapacity());
-            stmt.setInt(7, 0);
-            stmt.executeUpdate();
-            return true;
-
-        } catch (SQLException e) {
-            System.err.println("saveFlight Error: " + e.getMessage());
-            return false;
-        }
-    }
-
     public Flight getFlight(String flightNumber) {
-        String sql = "SELECT * FROM Flight WHERE flightNumber = ?";
+
+        String sql =
+            "SELECT * FROM Flight WHERE flightNumber = ?";
 
         try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, flightNumber);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                Flight f = new Flight(
-                        rs.getString("flightNumber"),
-                        rs.getString("origin"),
-                        rs.getString("destination"),
-                        rs.getString("departureTime"),
-                        rs.getString("arrivalTime"),
-                        rs.getInt("capacity")
+                return new Flight(
+                    rs.getString("flightNumber"),
+                    rs.getString("flightDate"),
+                    rs.getString("origin"),
+                    rs.getString("destination"),
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
+                    rs.getInt("capacity"),
+                    rs.getFloat("price")
                 );
-                return f;
             }
 
         } catch (SQLException e) {
@@ -183,20 +163,24 @@ public class DatabaseManager {
     }
 
     public List<Flight> getAllFlights() {
+
         List<Flight> list = new ArrayList<>();
         String sql = "SELECT * FROM Flight";
 
         try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
                 list.add(new Flight(
-                        rs.getString("flightNumber"),
-                        rs.getString("origin"),
-                        rs.getString("destination"),
-                        rs.getString("departureTime"),
-                        rs.getString("arrivalTime"),
-                        rs.getInt("capacity")
+                    rs.getString("flightNumber"),
+                    rs.getString("flightDate"),
+                    rs.getString("origin"),
+                    rs.getString("destination"),
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
+                    rs.getInt("capacity"),
+                    rs.getFloat("price")
                 ));
             }
 
@@ -207,10 +191,11 @@ public class DatabaseManager {
     }
 
     public List<Flight> queryFlights(String destination) {
+
         List<Flight> results = new ArrayList<>();
 
         if (destination == null || destination.isBlank()) {
-            return results; // or return getAllFlights() if preferred
+            return results;
         }
 
         String sql =
@@ -218,7 +203,7 @@ public class DatabaseManager {
             "WHERE LOWER(destination) = LOWER(?)";
 
         try (Connection conn = connect();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, destination.trim());
 
@@ -226,12 +211,14 @@ public class DatabaseManager {
 
             while (rs.next()) {
                 results.add(new Flight(
-                        rs.getString("flightNumber"),
-                        rs.getString("origin"),
-                        rs.getString("destination"),
-                        rs.getString("departureTime"),
-                        rs.getString("arrivalTime"),
-                        rs.getInt("capacity")
+                    rs.getString("flightNumber"),
+                    rs.getString("flightDate"),        
+                    rs.getString("origin"),
+                    rs.getString("destination"),
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
+                    rs.getInt("capacity"),      
+                    rs.getFloat("price")              
                 ));
             }
 
@@ -243,13 +230,13 @@ public class DatabaseManager {
     }
 
 
-    public boolean deleteFlight(int flightNumber) {
+    public boolean deleteFlight(String flightNumber) {
         String sql = "DELETE FROM Flight WHERE flightNumber = ?";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, flightNumber);
+            stmt.setString(1, flightNumber);
             stmt.executeUpdate();
             return true;
 
@@ -352,8 +339,8 @@ public class DatabaseManager {
         String sql =
             "SELECT r.reservationID, r.status, r.seatNumber, " +
             "c.customerID, c.name, c.email, c.phone, " +
-            "f.flightNumber, f.origin, f.destination, " +
-            "f.departureTime, f.arrivalTime " +
+            "f.flightNumber, f.flightDate, f.origin, f.destination, " +
+            "f.departureTime, f.arrivalTime, f.capacity, f.seatsReserved, f.price " +
             "FROM Reservation r " +
             "JOIN Customer c ON r.customerID = c.customerID " +
             "JOIN Flight f ON r.flightNumber = f.flightNumber " +
@@ -363,7 +350,6 @@ public class DatabaseManager {
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, customer.getCustomerID());
-
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -377,11 +363,13 @@ public class DatabaseManager {
 
                 Flight f = new Flight(
                     rs.getString("flightNumber"),
+                    rs.getString("flightDate"),      
                     rs.getString("origin"),
                     rs.getString("destination"),
-                    rs.getString("departureTime"),
-                    rs.getString("arrivalTime"),
-                    0
+                    rs.getString("departureTime"),    
+                    rs.getString("arrivalTime"),     
+                    rs.getInt("capacity"),
+                    rs.getFloat("price")
                 );
 
                 Reservation r = new Reservation(
@@ -548,6 +536,29 @@ public class DatabaseManager {
         }
     }
 
+        public boolean validateAdmin(String username, String password) {
+
+        String sql = """
+            SELECT adminID
+            FROM SystemAdministrator
+            WHERE username = ?
+            AND password = ?
+        """;
+
+        try (Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            return stmt.executeQuery().next();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public Customer authenticateCustomer(String username, String password) {
 
         String sql =
@@ -579,5 +590,55 @@ public class DatabaseManager {
         return null; // login failed
     }
 
+    public boolean updateFlight(Flight flight) {
+        String sql =
+            "UPDATE Flight SET origin=?, destination=?, departureTime=?, arrivalTime=?, capacity=? " +
+            "WHERE flightNumber=?";
+
+        try (Connection conn = connect();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, flight.getOrigin());
+            ps.setString(2, flight.getDestination());
+            ps.setString(3, flight.getDepartureTime());
+            ps.setString(4, flight.getArrivalTime());
+            ps.setInt(5, flight.getCapacity());
+            ps.setString(6, flight.getFlightNumber());
+
+            return ps.executeUpdate() == 1;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean saveFlight(Flight flight) {
+
+        String sql =
+            "INSERT INTO Flight (flightNumber, flightDate, origin, destination, " +
+            "departureTime, arrivalTime, capacity, price) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, flight.getFlightNumber());
+            stmt.setString(2, flight.getFlightDate());
+            stmt.setString(3, flight.getOrigin());
+            stmt.setString(4, flight.getDestination());
+            stmt.setString(5, flight.getDepartureTime());
+            stmt.setString(6, flight.getArrivalTime());
+            stmt.setInt(7, flight.getCapacity());
+            stmt.setDouble(8, flight.getPrice());
+
+            stmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("saveFlight (INSERT) Error: " + e.getMessage());
+            return false;
+        }
+    }
     
 }

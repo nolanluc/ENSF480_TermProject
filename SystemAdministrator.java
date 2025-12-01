@@ -5,6 +5,8 @@ public class SystemAdministrator {
 
     private String adminID;
     private String name;
+    private String username;
+    private String password;
 
     public SystemAdministrator(String adminID, String name) {
         this.adminID = adminID;
@@ -31,4 +33,6 @@ public class SystemAdministrator {
     public boolean removeFlight(String flightNumber) {
         return DatabaseManager.getInstance().deleteFlight(flightNumber);
     }
+
+    
 }

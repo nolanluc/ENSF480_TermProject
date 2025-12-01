@@ -12,7 +12,7 @@ public class LoginController {
 
             case "System Administrator":
                 // you can wire this later
-                return false;
+                return DatabaseManager.getInstance().validateAdmin(username, password);
 
             default:
                 return false;

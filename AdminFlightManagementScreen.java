@@ -17,8 +17,8 @@ public class AdminFlightManagementScreen {
 
     public Flight enterFlightData() {
         // For now just return a dummy flight; Swing UI will replace this.
-        System.out.println("enterFlightData() called - provide real data from Swing UI");
-        return new Flight("FL-0001", "YYC", "YVR", "2025-05-01 10:00", "2025-05-01 11:15", 100);
+        // System.out.println("enterFlightData() called - provide real data from Swing UI");
+        // return new Flight("FL-0001", "YYC", "YVR", "2025-05-01 10:00", "2025-05-01 11:15", 100);
     }
 
     public void showConfirmation(String message) {

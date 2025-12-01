@@ -22,21 +22,24 @@ public class AdminFlightManagementController {
     }
 
     public Flight createFlight(Flight flightData) {
+
         if (!validateInput(flightData)) {
             return null;
         }
-        // In a more advanced design you could call FlightFactory here.
+
         currentFlight = new Flight(
-                flightData.getFlightNumber(),
-                flightData.getOrigin(),
-                flightData.getDestination(),
-                flightData.getDepartureTime(),
-                flightData.getArrivalTime(),
-                flightData.getCapacity()
+            flightData.getFlightNumber(),
+            flightData.getFlightDate(),     
+            flightData.getOrigin(),
+            flightData.getDestination(),
+            flightData.getDepartureTime(),
+            flightData.getArrivalTime(),
+            flightData.getCapacity(), 
+            flightData.getPrice()              
         );
+
         return currentFlight;
     }
-
     public boolean saveFlight(Flight flightData) {
         if (!validateInput(flightData)) {
             return false;
@@ -49,11 +52,16 @@ public class AdminFlightManagementController {
         return currentFlight;
     }
 
-    public boolean deleteFlight(int flightNumber) {
+    public boolean deleteFlight(String flightNumber) {
         return db.deleteFlight(flightNumber);
     }
 
     public List<Flight> listAllFlights() {
         return db.getAllFlights();
+    }
+
+    public boolean updateFlight(Flight flight) {
+        return db.updateFlight(flight);
+
     }
 }

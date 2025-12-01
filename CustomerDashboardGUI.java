@@ -8,7 +8,6 @@ public class CustomerDashboardGUI extends JFrame {
     public CustomerDashboardGUI(Customer customer) {
 
         super("Customer Menu");
-
         this.loggedInCustomer = customer;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -23,18 +22,15 @@ public class CustomerDashboardGUI extends JFrame {
         JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
 
         JButton searchFlightsBtn = new JButton("Search Flights");
-        JButton viewReservationsBtn = new JButton("View Reservations");
         JButton myReservationsBtn = new JButton("Manage My Reservations");
 
         buttonPanel.add(searchFlightsBtn);
-        buttonPanel.add(viewReservationsBtn);
         buttonPanel.add(myReservationsBtn);
 
         add(buttonPanel, BorderLayout.CENTER);
 
-        // Search flights (placeholder)
         searchFlightsBtn.addActionListener(e ->
-            new SearchFlightGUI()
+            new SearchFlightScreen()
         );
 
         myReservationsBtn.addActionListener(e ->

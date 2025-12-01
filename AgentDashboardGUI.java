@@ -26,13 +26,6 @@ public class AgentDashboardGUI extends JFrame {
     private List<Reservation> reservations;
 
 
-    //    FLIGHT UI COMPONENTS
-    private JList<String> flightList;
-    private DefaultListModel<String> flightListModel;
-
-    private JTextField departureField;
-    private JTextField arrivalField;
-    private JTextField capacityField;
 
     //    CUSTOMER UI COMPONENTS
     private JTextArea customerInfoArea;
@@ -57,7 +50,6 @@ public class AgentDashboardGUI extends JFrame {
         add(tabs);
 
 
-        loadFlights();
         loadCustomers();
 
         setVisible(true);
@@ -66,83 +58,9 @@ public class AgentDashboardGUI extends JFrame {
 
     //    FLIGHT TAB
     private JPanel createFlightPanel() {
-
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-
-
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panel.add(topPanel, BorderLayout.NORTH);
-
-        
-        // FLIGHT LIST
-        
-        flightListModel = new DefaultListModel<>();
-        flightList = new JList<>(flightListModel);
-        flightList.setBorder(BorderFactory.createTitledBorder("Scheduled Flights"));
-
-        // Load flights from DB
-
-        flightList.addListSelectionListener(e -> loadFlight());
-
-        panel.add(new JScrollPane(flightList), BorderLayout.WEST);
-
-        
-        // FLIGHT DETAILS
-        
-        JPanel details = new JPanel(new GridLayout(4, 2, 10, 10));
-        details.setBorder(BorderFactory.createTitledBorder("Flight Details"));
-
-        departureField = new JTextField();
-        arrivalField = new JTextField();
-        capacityField = new JTextField();
-
-        departureField.setEditable(false);
-        arrivalField.setEditable(false);
-        capacityField.setEditable(false);
-
-        details.add(new JLabel("Departure Time:"));
-        details.add(departureField);
-        details.add(new JLabel("Arrival Time:"));
-        details.add(arrivalField);
-        details.add(new JLabel("Capacity:"));
-        details.add(capacityField);
-
-        panel.add(details, BorderLayout.CENTER);
-
-
-        return panel;
+        return new FlightScreen(flightController);
     }
 
-    private void loadFlight() {
-        int index = flightList.getSelectedIndex();
-        if (index < 0 || flights == null || index >= flights.size())
-            return;
-
-        selectedFlight = flights.get(index);
-
-        departureField.setText(selectedFlight.getDepartureTime());
-        arrivalField.setText(selectedFlight.getArrivalTime());
-        capacityField.setText(String.valueOf(selectedFlight.getCapacity()));
-    }
-
-    private void loadFlights() {
-
-        flights = flightController.getAllFlights();
-        flightListModel.clear();
-
-        if (flights == null || flights.isEmpty()) {
-            flightListModel.addElement("No flights found.");
-            return;
-        }
-
-        for (Flight f : flights) {
-            flightListModel.addElement(
-                f.getFlightNumber() + " | " +
-                f.getOrigin() + " → " +
-                f.getDestination()
-            );
-        }
-    }
     
     //    CUSTOMER TAB
        

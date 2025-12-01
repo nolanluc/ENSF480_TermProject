@@ -117,6 +117,9 @@ public class LoginGUI extends JFrame {
 
         if (role.equals("Flight Agent")) 
             new AgentDashboardGUI();
+
+        if (role.equals("System Administrator")) 
+            new AdminGUI();
     }
 
     public static void main(String[] args) {
