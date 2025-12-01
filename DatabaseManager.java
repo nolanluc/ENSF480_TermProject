@@ -640,5 +640,70 @@ public class DatabaseManager {
             return false;
         }
     }
+
+    public List<Flight> getFlightsByDate(String date) {
+
+        List<Flight> list = new ArrayList<>();
+        String sql = "SELECT * FROM Flight WHERE flightDate = ?";
+
+        try (Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, date);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                list.add(new Flight(
+                    rs.getString("flightNumber"),
+                    rs.getString("flightDate"),
+                    rs.getString("origin"),
+                    rs.getString("destination"),
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
+                    rs.getInt("capacity"),
+                    rs.getFloat("price")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("getFlightsByDate Error: " + e.getMessage());
+        }
+
+        return list;
+    }
     
+
+    public List<Flight> getFlightsByPriceRange(float min, float max) {
+
+        List<Flight> list = new ArrayList<>();
+        String sql =
+            "SELECT * FROM Flight WHERE price BETWEEN ? AND ?";
+
+        try (Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setFloat(1, min);
+            stmt.setFloat(2, max);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                list.add(new Flight(
+                    rs.getString("flightNumber"),
+                    rs.getString("flightDate"),
+                    rs.getString("origin"),
+                    rs.getString("destination"),
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
+                    rs.getInt("capacity"),
+                    rs.getFloat("price")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("getFlightsByPriceRange Error: " + e.getMessage());
+        }
+
+        return list;
+    }
 }
