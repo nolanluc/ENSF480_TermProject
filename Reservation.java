@@ -4,7 +4,7 @@
 public class Reservation {
 
     private int reservationID;
-    private int paymentID;
+    private String paymentID;
     private Customer customer;
     private Flight flight;
     private String status;
@@ -16,6 +16,7 @@ public class Reservation {
         this.flight = flight;
         this.status = "CONFIRMED";
         this.seatNumber = seatNumber;
+		this.paymentID = null;
     }
 
     public Reservation(int reservationID, Customer customer, Flight flight, String status, String seatNumber) {
@@ -24,6 +25,7 @@ public class Reservation {
         this.flight = flight;
         this.status = status;
         this.seatNumber = seatNumber;
+		this.paymentID = null;
     }
 
     public boolean updateReservation() {
@@ -74,4 +76,12 @@ public class Reservation {
     public void setSeatNumber(String seatNumber) {
         this.seatNumber = seatNumber;
     }
+	
+	public String getPaymentID() { 
+		return paymentID; 
+	
+	}
+	public void setPaymentID(String id) {
+		this.paymentID = id; 
+	}
 }
