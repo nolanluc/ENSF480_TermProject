@@ -3,17 +3,26 @@
  */
 public class Reservation {
 
-    private String reservationID;
+    private int reservationID;
+    private int paymentID;
     private Customer customer;
     private Flight flight;
     private String status;
     private String seatNumber;
 
-    public Reservation(String reservationID, Customer customer, Flight flight, String seatNumber) {
+    public Reservation(int reservationID, Customer customer, Flight flight, String seatNumber) {
         this.reservationID = reservationID;
         this.customer = customer;
         this.flight = flight;
         this.status = "CONFIRMED";
+        this.seatNumber = seatNumber;
+    }
+
+    public Reservation(int reservationID, Customer customer, Flight flight, String status, String seatNumber) {
+        this.reservationID = reservationID;
+        this.customer = customer;
+        this.flight = flight;
+        this.status = status;
         this.seatNumber = seatNumber;
     }
 
@@ -38,7 +47,7 @@ public class Reservation {
     }
 
     // Getters and setters used elsewhere
-    public String getReservationID() {
+    public int getReservationID() {
         return reservationID;
     }
 
@@ -60,5 +69,9 @@ public class Reservation {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setSeatNumber(String seatNumber) {
+        this.seatNumber = seatNumber;
     }
 }

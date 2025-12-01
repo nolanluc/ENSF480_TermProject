@@ -30,15 +30,16 @@ public class DatabaseManager {
 
     //Customer CRUD
     public boolean saveCustomer(Customer c) {
-        String sql = "INSERT INTO Customer (customerID, name, email, phone) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Customer (name, email, phone, username, password) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, c.getCustomerID());
-            stmt.setString(2, c.getName());
-            stmt.setString(3, c.getEmail());
-            stmt.setString(4, c.getPhone());
+            stmt.setString(1, c.getName());
+            stmt.setString(2, c.getEmail());
+            stmt.setString(3, c.getPhone());
+            stmt.setString(4, c.getUsername());
+            stmt.setString(5, c.getPassword());
             stmt.executeUpdate();
             return true;
 
@@ -59,7 +60,7 @@ public class DatabaseManager {
 
             if (rs.next()) {
                 return new Customer(
-                        rs.getString("customerID"),
+                        rs.getInt("customerID"),
                         rs.getString("name"),
                         rs.getString("email"),
                         rs.getString("phone")
@@ -82,7 +83,7 @@ public class DatabaseManager {
 
             while (rs.next()) {
                 list.add(new Customer(
-                        rs.getString("customerID"),
+                        rs.getInt("customerID"),
                         rs.getString("name"),
                         rs.getString("email"),
                         rs.getString("phone")
@@ -104,7 +105,7 @@ public class DatabaseManager {
             stmt.setString(1, c.getName());
             stmt.setString(2, c.getEmail());
             stmt.setString(3, c.getPhone());
-            stmt.setString(4, c.getCustomerID());
+            stmt.setInt(4, c.getCustomerID());
             stmt.executeUpdate();
             return true;
 
@@ -188,7 +189,6 @@ public class DatabaseManager {
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
                 list.add(new Flight(
                         rs.getString("flightNumber"),
@@ -249,13 +249,13 @@ public class DatabaseManager {
 }
 
 
-    public boolean deleteFlight(String flightNumber) {
+    public boolean deleteFlight(int flightNumber) {
         String sql = "DELETE FROM Flight WHERE flightNumber = ?";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, flightNumber);
+            stmt.setInt(1, flightNumber);
             stmt.executeUpdate();
             return true;
 
@@ -300,18 +300,17 @@ public class DatabaseManager {
 
     //Reservation CRUD
     public boolean saveReservation(Reservation r) {
-        String sql = "INSERT INTO Reservation (reservationID, customerID, flightNumber, status, seatNumber, paymentID)"
-                   + " VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Reservation (customerID, flightNumber, status, seatNumber, paymentID)"
+                   + " VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, r.getReservationID());
-            stmt.setString(2, r.getCustomer().getCustomerID());
-            stmt.setString(3, r.getFlight().getFlightNumber());
-            stmt.setString(4, r.getStatus());
-            stmt.setString(5, r.getSeatNumber());
-            stmt.setString(6, null); // payment assigned later
+            stmt.setInt(1, r.getCustomer().getCustomerID());
+            stmt.setString(2, r.getFlight().getFlightNumber());
+            stmt.setString(3, r.getStatus());
+            stmt.setString(4, r.getSeatNumber());
+            stmt.setNull(5, java.sql.Types.INTEGER); // payment assigned later
 
             stmt.executeUpdate();
             return true;
@@ -336,7 +335,7 @@ public class DatabaseManager {
                 Flight flight = getFlight(rs.getString("flightNumber"));
 
                 Reservation r = new Reservation(
-                        rs.getString("reservationID"),
+                        rs.getInt("reservationID"),
                         customer,
                         flight,
                         rs.getString("seatNumber")
@@ -353,17 +352,53 @@ public class DatabaseManager {
     }
 
     public List<Reservation> getReservationsForCustomer(Customer customer) {
+
         List<Reservation> list = new ArrayList<>();
-        String sql = "SELECT reservationID FROM Reservation WHERE customerID = ?";
+
+        String sql =
+            "SELECT r.reservationID, r.status, r.seatNumber, " +
+            "c.customerID, c.name, c.email, c.phone, " +
+            "f.flightNumber, f.origin, f.destination, " +
+            "f.departureTime, f.arrivalTime " +
+            "FROM Reservation r " +
+            "JOIN Customer c ON r.customerID = c.customerID " +
+            "JOIN Flight f ON r.flightNumber = f.flightNumber " +
+            "WHERE r.customerID = ?";
 
         try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, customer.getCustomerID());
+            stmt.setInt(1, customer.getCustomerID());
+
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                list.add(getReservation(rs.getString("reservationID")));
+
+                Customer c = new Customer(
+                    rs.getInt("customerID"),
+                    rs.getString("name"),
+                    rs.getString("email"),
+                    rs.getString("phone")
+                );
+
+                Flight f = new Flight(
+                    rs.getString("flightNumber"),
+                    rs.getString("origin"),
+                    rs.getString("destination"),
+                    rs.getString("departureTime"),
+                    rs.getString("arrivalTime"),
+                    0
+                );
+
+                Reservation r = new Reservation(
+                    rs.getInt("reservationID"),
+                    c,
+                    f,
+                    rs.getString("status"),
+                    rs.getString("seatNumber")
+                );
+
+                list.add(r);
             }
 
         } catch (SQLException e) {
@@ -381,8 +416,8 @@ public class DatabaseManager {
 
             stmt.setString(1, r.getStatus());
             stmt.setString(2, r.getSeatNumber());
-            stmt.setString(3, null); // attach payment later
-            stmt.setString(4, r.getReservationID());
+            stmt.setNull(3, java.sql.Types.INTEGER); // attach payment later
+            stmt.setInt(4, r.getReservationID());
             stmt.executeUpdate();
             return true;
 
@@ -392,13 +427,13 @@ public class DatabaseManager {
         }
     }
 
-    public boolean deleteReservation(String reservationID) {
+    public boolean deleteReservation(int reservationID) {
         String sql = "DELETE FROM Reservation WHERE reservationID = ?";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, reservationID);
+            stmt.setInt(1, reservationID);
             stmt.executeUpdate();
             return true;
 
@@ -518,4 +553,8 @@ public class DatabaseManager {
             return false;
         }
     }
+
+    
+
+    
 }

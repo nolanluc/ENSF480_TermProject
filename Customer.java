@@ -6,18 +6,30 @@ import java.util.List;
  */
 public class Customer {
 
-    private String customerID;
+    private int customerID;
     private String name;
     private String email;
     private String phone;
     private ArrayList<Reservation> reservations; //TEMP
+    private String username;
+    private String password;
 
-    public Customer(String customerID, String name, String email, String phone) {
+    public Customer(int customerID, String name, String email, String phone) {
         this.customerID = customerID;
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.reservations = new ArrayList<>();
+    }
+
+    public Customer(int customerID, String name, String email, String phone, String username, String password) {
+        this.customerID = customerID;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.reservations = new ArrayList<>();
+        this.username = username;
+        this.password = password;
     }
 
     public List<Flight> searchFlights(String criteria) {
@@ -55,10 +67,13 @@ public class Customer {
     }
 
     // Getters (no setters for now, but you can add as needed)
-    public String getCustomerID() {
+    public int getCustomerID() {
         return customerID;
     }
 
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
 
     // TEMP
     public ArrayList<Reservation> getReservations() {
@@ -79,6 +94,14 @@ public class Customer {
     
     public String getPhone() {
         return phone;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
     }
     
 }

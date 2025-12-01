@@ -17,9 +17,12 @@ public class SearchFlightController {
         this.strategy = strategy;
     }
 
+    public List<Flight> getAllFlights() {
+        return db.getAllFlights();
+    }
+
     public List<Flight> searchFlights(String criteria) {
         if (strategy == null) {
-            // Fallback: query directly from DB
             return db.queryFlights(criteria);
         }
         return strategy.search(criteria);

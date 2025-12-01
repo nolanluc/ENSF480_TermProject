@@ -49,7 +49,7 @@ public class AdminFlightManagementController {
         return currentFlight;
     }
 
-    public boolean deleteFlight(String flightNumber) {
+    public boolean deleteFlight(int flightNumber) {
         return db.deleteFlight(flightNumber);
     }
 

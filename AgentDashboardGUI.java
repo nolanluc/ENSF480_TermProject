@@ -1,21 +1,32 @@
 import javax.swing.*;
+import javax.xml.crypto.Data;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AgentDashboardGUI extends JFrame {
 
-    /* =========================
-       TEMP IN-MEMORY DATA
-       ========================= */
-    private ArrayList<Flight> flights = new ArrayList<>();
-    private ArrayList<Customer> customers = new ArrayList<>();
-
+    private List<Flight> flights;
+    private List<Customer> customers;
+    private JList<String> customerList;
     private Flight selectedFlight;
+    private SearchFlightController flightController;
+    private CustomerController customerController;
+    private ReservationController reservationController;
+    
 
-    /* =========================
-       FLIGHT UI COMPONENTS
-       ========================= */
+    // Reservations UI
+    private JList<String> reservationList;
+    private JTextField seatField;
+    private JButton saveReservationBtn;
+    private JButton cancelReservationBtn;
+
+    // Data
+    private List<Reservation> reservations;
+
+
+    //    FLIGHT UI COMPONENTS
     private JList<String> flightList;
     private DefaultListModel<String> flightListModel;
 
@@ -23,20 +34,17 @@ public class AgentDashboardGUI extends JFrame {
     private JTextField arrivalField;
     private JTextField capacityField;
 
-    /* =========================
-       CUSTOMER UI COMPONENTS
-       ========================= */
+    //    CUSTOMER UI COMPONENTS
     private JTextArea customerInfoArea;
-    private JTextField searchCustomerField;
 
-    /* =========================
-       CONSTRUCTOR
-       ========================= */
+    //    CONSTRUCTOR
     public AgentDashboardGUI() {
 
         super("Agent Dashboard");
 
-        initSampleData();
+        flightController = new SearchFlightController(DatabaseManager.getInstance(), null);
+        customerController = new CustomerController(DatabaseManager.getInstance());
+        reservationController = new ReservationController(DatabaseManager.getInstance());
 
         setSize(800, 500);
         setLocationRelativeTo(null);
@@ -47,42 +55,40 @@ public class AgentDashboardGUI extends JFrame {
         tabs.addTab("Customers", createCustomerPanel());
 
         add(tabs);
+
+
+        loadFlights();
+        loadCustomers();
+
         setVisible(true);
     }
 
-    /* =========================
-       INITIALIZE SAMPLE DATA
-       ========================= */
-    private void initSampleData() {
 
-        flights.add(new Flight("AC101", "Calgary", "Vancouver", "08:00", "09:30", 150));
-        flights.add(new Flight("WS202", "Vancouver", "Toronto", "11:00", "18:00", 180));
-        flights.add(new Flight("AC303", "Toronto", "New York", "20:00", "22:30", 120));
-
-        customers.add(new Customer("C001", "Jane Doe", "jane@email.com", "403-111-2222"));
-        customers.add(new Customer("C002", "John Smith", "john@email.com", "403-333-4444"));
-    }
-
-    /* =========================
-       FLIGHT TAB
-       ========================= */
+    //    FLIGHT TAB
     private JPanel createFlightPanel() {
 
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
-        flightListModel = new DefaultListModel<>();
-        for (Flight f : flights) {
-            flightListModel.addElement(
-                f.getFlightNumber() + " | " + f.getOrigin() + " → " + f.getDestination()
-            );
-        }
 
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.add(topPanel, BorderLayout.NORTH);
+
+        
+        // FLIGHT LIST
+        
+        flightListModel = new DefaultListModel<>();
         flightList = new JList<>(flightListModel);
-        flightList.setBorder(BorderFactory.createTitledBorder("Flights"));
+        flightList.setBorder(BorderFactory.createTitledBorder("Scheduled Flights"));
+
+        // Load flights from DB
+
         flightList.addListSelectionListener(e -> loadFlight());
 
         panel.add(new JScrollPane(flightList), BorderLayout.WEST);
 
+        
+        // FLIGHT DETAILS
+        
         JPanel details = new JPanel(new GridLayout(4, 2, 10, 10));
         details.setBorder(BorderFactory.createTitledBorder("Flight Details"));
 
@@ -90,6 +96,9 @@ public class AgentDashboardGUI extends JFrame {
         arrivalField = new JTextField();
         capacityField = new JTextField();
 
+        departureField.setEditable(false);
+        arrivalField.setEditable(false);
+        capacityField.setEditable(false);
 
         details.add(new JLabel("Departure Time:"));
         details.add(departureField);
@@ -99,96 +108,232 @@ public class AgentDashboardGUI extends JFrame {
         details.add(capacityField);
 
         panel.add(details, BorderLayout.CENTER);
+
+
         return panel;
     }
 
     private void loadFlight() {
         int index = flightList.getSelectedIndex();
-        if (index >= 0) {
-            selectedFlight = flights.get(index);
-            departureField.setText(selectedFlight.getDepartureTime());
-            arrivalField.setText(selectedFlight.getArrivalTime());
-            capacityField.setText(String.valueOf(selectedFlight.getCapacity()));
-        }
+        if (index < 0 || flights == null || index >= flights.size())
+            return;
+
+        selectedFlight = flights.get(index);
+
+        departureField.setText(selectedFlight.getDepartureTime());
+        arrivalField.setText(selectedFlight.getArrivalTime());
+        capacityField.setText(String.valueOf(selectedFlight.getCapacity()));
     }
 
-    /* =========================
-       CUSTOMER TAB
-       ========================= */
+    private void loadFlights() {
+
+        flights = flightController.getAllFlights();
+        flightListModel.clear();
+
+        if (flights == null || flights.isEmpty()) {
+            flightListModel.addElement("No flights found.");
+            return;
+        }
+
+        for (Flight f : flights) {
+            flightListModel.addElement(
+                f.getFlightNumber() + " | " +
+                f.getOrigin() + " → " +
+                f.getDestination()
+            );
+        }
+    }
+    
+    //    CUSTOMER TAB
+       
     private JPanel createCustomerPanel() {
 
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
-        JPanel searchPanel = new JPanel(new FlowLayout());
+        // ===== TOP BAR =====
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        searchCustomerField = new JTextField(15);
-        JButton searchBtn = new JButton("Search");
-        JButton addBtn = new JButton("Add Customer");
+        JButton modifyCustomerBtn = new JButton("Modify Customer");
+        JButton addCustomerBtn = new JButton("Add Customer");
 
-        searchPanel.add(new JLabel("Customer ID / Email:"));
-        searchPanel.add(searchCustomerField);
-        searchPanel.add(searchBtn);
-        searchPanel.add(addBtn);
+        modifyCustomerBtn.addActionListener(e -> modifyCustomer());
+        addCustomerBtn.addActionListener(e -> openAddCustomerScreen());
 
-        panel.add(searchPanel, BorderLayout.NORTH);
+        topPanel.add(modifyCustomerBtn);
+        topPanel.add(addCustomerBtn);
+        panel.add(topPanel, BorderLayout.NORTH);
 
-        customerInfoArea = new JTextArea();
-        customerInfoArea.setEditable(false);
-        customerInfoArea.setBorder(BorderFactory.createTitledBorder("Customer Info"));
+        // LEFT: Customers
+        customerList = new JList<>();
+        panel.add(new JScrollPane(customerList), BorderLayout.WEST);
 
-        panel.add(new JScrollPane(customerInfoArea), BorderLayout.CENTER);
+        // CENTER: Reservations
+        reservationList = new JList<>();
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(BorderFactory.createTitledBorder("Reservations"));
+        center.add(new JScrollPane(reservationList), BorderLayout.CENTER);
+        panel.add(center, BorderLayout.CENTER);
 
-        searchBtn.addActionListener(e -> searchCustomer());
-        addBtn.addActionListener(e -> addCustomer());
+        // RIGHT: Reservation Details
+        JPanel right = new JPanel(new GridLayout(5, 1, 5, 5));
+        right.setBorder(BorderFactory.createTitledBorder("Modify Reservation"));
+
+        seatField = new JTextField();
+        saveReservationBtn = new JButton("Save");
+        cancelReservationBtn = new JButton("Cancel Reservation");
+
+        right.add(new JLabel("Seat Number:"));
+        right.add(seatField);
+        right.add(saveReservationBtn);
+        right.add(cancelReservationBtn);
+
+        panel.add(right, BorderLayout.EAST);
+
+        // Listeners
+        customerList.addListSelectionListener(e -> loadCustomerReservations());
+        reservationList.addListSelectionListener(e -> loadReservationDetails());
+
+        saveReservationBtn.addActionListener(e -> saveReservation());
+        cancelReservationBtn.addActionListener(e -> cancelReservation());
 
         return panel;
     }
 
-    private void searchCustomer() {
-        // String input = searchCustomerField.getText().trim();
+    
+    private void loadCustomers() {
 
-        // for (Customer c : customers) {
-        //     if (c.getCustomerID().equalsIgnoreCase(input)
-        //             || c.getEmail().equalsIgnoreCase(input)) {
+        customers = customerController.getAllCustomers();
 
-        //         customerInfoArea.setText(
-        //                 "ID: " + c.getCustomerID() +
-        //                 "\nName: " + c.getName() +
-        //                 "\nEmail: " + c.getEmail() +
-        //                 "\nPhone: " + c.getPhone()
-        //         );
-        //         return;
-        //     }
-        // }
-        // customerInfoArea.setText("Customer not found.");
+        if (customers == null || customers.isEmpty()) {
+            customerList.setListData(new String[] { "No customers found." });
+            return;
+        }
+
+        String[] listData = new String[customers.size()];
+        for (int i = 0; i < customers.size(); i++) {
+            listData[i] = customers.get(i).getCustomerID()
+                    + " - " + customers.get(i).getName();
+        }
+
+        customerList.setListData(listData);
     }
 
-    private void addCustomer() {
 
-        JTextField id = new JTextField();
-        JTextField name = new JTextField();
-        JTextField email = new JTextField();
-        JTextField phone = new JTextField();
+    private void modifyCustomer() {
 
-        Object[] fields = {
-            "ID:", id,
-            "Name:", name,
-            "Email:", email,
-            "Phone:", phone
-        };
+        int index = customerList.getSelectedIndex();
 
-        int result = JOptionPane.showConfirmDialog(
-                this, fields, "Add Customer", JOptionPane.OK_CANCEL_OPTION);
-
-        if (result == JOptionPane.OK_OPTION) {
-            Customer c = new Customer(
-                    id.getText(),
-                    name.getText(),
-                    email.getText(),
-                    phone.getText()
+        if (index < 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please select a customer.",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE
             );
-            customers.add(c);
-            JOptionPane.showMessageDialog(this, "Customer added.");
+            return;
+        }
+
+        Customer selectedCustomer = customers.get(index);
+
+        ModifyCustomerScreen screen =
+                new ModifyCustomerScreen(
+                        this,
+                        selectedCustomer,
+                        customerController
+                );
+
+        screen.setVisible(true);
+
+        loadCustomers();
+    }
+        public static void main(String[] args) {
+        new AgentDashboardGUI();
+    }
+
+    private void loadCustomerReservations() {
+
+        int index = customerList.getSelectedIndex();
+        if (index < 0) return;
+
+        Customer customer = customers.get(index);
+
+        reservations =
+            reservationController.getReservationsForCustomer(customer);
+
+        if (reservations.isEmpty()) {
+            reservationList.setListData(new String[] { "No reservations." });
+            return;
+        }
+
+        String[] data = new String[reservations.size()];
+        for (int i = 0; i < reservations.size(); i++) {
+            Reservation r = reservations.get(i);
+            data[i] =
+                "Reservation #" + r.getReservationID() +
+                " | " + r.getFlight().getFlightNumber() +
+                " | " + r.getStatus();
+        }
+
+        reservationList.setListData(data);
+    }
+
+    private void loadReservationDetails() {
+
+        int index = reservationList.getSelectedIndex();
+        if (index < 0 || reservations == null) return;
+
+        Reservation r = reservations.get(index);
+        seatField.setText(r.getSeatNumber());
+    }
+
+    private void saveReservation() {
+
+        int index = reservationList.getSelectedIndex();
+        if (index < 0) {
+            JOptionPane.showMessageDialog(this, "Select a reservation.");
+            return;
+        }
+
+        Reservation r = reservations.get(index);
+        r.setSeatNumber(seatField.getText());
+
+        if (reservationController.updateReservation(r)) {
+            JOptionPane.showMessageDialog(this, "Reservation updated.");
+            loadCustomerReservations();
+        } else {
+            JOptionPane.showMessageDialog(this, "Update failed.");
+        }
+    }
+
+    private void cancelReservation() {
+
+        int index = reservationList.getSelectedIndex();
+        if (index < 0) return;
+
+        Reservation r = reservations.get(index);
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Cancel this reservation?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            reservationController.removeReservation(r.getReservationID());
+            loadCustomerReservations();
+        }
+    }
+
+    private void openAddCustomerScreen() {
+
+        AddCustomerScreen screen =
+            new AddCustomerScreen(this, customerController);
+
+        screen.setVisible(true);
+
+        if (screen.wasSaved()) {
+            loadCustomers(); // refresh list
         }
     }
 }

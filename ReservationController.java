@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Control class for reservation retrieval and modification.
  */
@@ -15,11 +17,15 @@ public class ReservationController {
 
     public boolean updateReservation(Reservation reservation) {
         if (reservation == null) return false;
-        reservation.updateReservation();
-        return db.saveReservation(reservation);
+     
+        return db.updateReservation(reservation);
     }
 
-    public boolean removeReservation(String resID) {
+    public boolean removeReservation(int resID) {
         return db.deleteReservation(resID);
+    }
+
+    public List<Reservation> getReservationsForCustomer(Customer customer) {
+        return db.getReservationsForCustomer(customer);
     }
 }
